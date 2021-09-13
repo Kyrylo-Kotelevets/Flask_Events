@@ -1,4 +1,3 @@
-import json
 from functools import wraps
 
 from flask import Response
@@ -6,7 +5,9 @@ from flask import request, jsonify
 from flask_login import login_required, current_user
 from flask_restx import Resource
 
+from flask_app import db
 from flask_app.models.event import EventModel
+from flask_app.pagination.pagination import create_pagination
 from flask_app.schemas.event import event_full_schema, event_short_list_schema
 
 
@@ -21,6 +22,11 @@ class EventResource(Resource):
             return jsonify({
                 "status": 404,
                 "message": "Event not found"
+            })
+        elif event.status == "past" and request.method != "GET":
+            return jsonify({
+                "status": 404,
+                "message": "You can not apply changes to past event"
             })
         else:
             self.event = event
@@ -59,11 +65,19 @@ class UserEventsAsOwner(Resource):
 class EventList(Resource):
     @staticmethod
     def get():
-        filters = json.loads(request.args.get("filters"))
-        if filters:
-            return event_short_list_schema.dump(EventModel.find_by_status(filters["status"])), 200
-        else:
-            return event_short_list_schema.dump(EventModel.find_all()), 200
+        filters = dict(request.args)
+        page = int(filters.pop("page", 1))
+        limit = int(filters.pop("limit", 2))
+
+        queryset = EventModel.get_list(query_params=filters)
+        paginated_events = queryset.paginate(page, limit, error_out=False)
+        response = create_pagination(items=paginated_events,
+                                     schema=event_short_list_schema,
+                                     page=page,
+                                     limit=limit,
+                                     query_params=filters,
+                                     base_url=request.base_url)
+        return response, 200
 
     @staticmethod
     @login_required
@@ -75,8 +89,11 @@ class EventList(Resource):
 
         event = event_full_schema.load(event_json)
         event.owner = current_user
-        event.save_to_db()
+        if event.status == "past":
+            db.session.rollback()
+            return {'message': 'You can not create past event'}, 400
 
+        event.save_to_db()
         return event_full_schema.dump(event), 200
 
 

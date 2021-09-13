@@ -3,6 +3,7 @@ from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 
 from flask_app.models.event import EventModel
 from flask_app.schemas.user import user_short_schema, user_short_list_schema
+from flask_app.schemas.artifact import artifact_list_schema
 
 
 class EventSchema(SQLAlchemyAutoSchema):
@@ -29,6 +30,7 @@ class EventSchema(SQLAlchemyAutoSchema):
 
     participants = fields.Nested(user_short_list_schema, many=True)
     guests = fields.Nested(user_short_list_schema, many=True)
+    artifacts = fields.Nested(artifact_list_schema, many=True)
     owner = fields.Nested(user_short_schema, many=False)
 
     status = fields.String()
@@ -37,7 +39,10 @@ class EventSchema(SQLAlchemyAutoSchema):
         ordered = True
         include_fk = True
         model = EventModel
-        fields = ("id", "title", "summary", "status", "dt_start", "dt_end", "owner", "participants", "guests")
+        fields = ("id", "title", "summary", "status",
+                  "dt_start", "dt_end",
+                  "owner", "participants", "guests",
+                  "artifacts")
         dump_only = ("id", "status", "participants", "guests", "owner")
 
     @post_load
@@ -48,5 +53,5 @@ class EventSchema(SQLAlchemyAutoSchema):
 event_full_schema = EventSchema()
 event_full_list_schema = EventSchema(many=True)
 
-event_short_schema = EventSchema(exclude=("summary", "participants", "guests"))
-event_short_list_schema = EventSchema(exclude=("summary", "participants", "guests"), many=True)
+event_short_schema = EventSchema(exclude=("summary", "participants", "guests", "artifacts"))
+event_short_list_schema = EventSchema(exclude=("summary", "participants", "guests", "artifacts"), many=True)

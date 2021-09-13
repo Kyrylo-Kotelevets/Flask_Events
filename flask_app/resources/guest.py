@@ -48,9 +48,7 @@ class UserAsGuest(EventResource):
                 "message": "You already registered as a guest"
             })
         else:
-            self.event.guests.append(current_user)
-            self.event.save_to_db()
-
+            self.event.add_guest(current_user)
             return jsonify({
                 "status": 200,
                 "message": "Successfully register as a guest"
@@ -112,8 +110,7 @@ class EventGuests(EventResource):
                         "message": "<{}> already registered for event as guest".format(guest.username)
                     })
 
-            self.event.guests.append(guest)
-            self.event.save_to_db()
+            self.event.add_guests(guest)
 
         return jsonify({
             "status": 200,

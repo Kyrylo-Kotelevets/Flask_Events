@@ -6,8 +6,7 @@ from flask_migrate import Migrate
 from flask_restx import Api
 from flask_sqlalchemy import SQLAlchemy
 from marshmallow import ValidationError
-# from sqlalchemy.exc import InvalidRequestError
-
+from sqlalchemy.exc import InvalidRequestError, IntegrityError
 from . import config
 
 # create Flask application
@@ -32,6 +31,7 @@ api = Api(app, title='Flask Events')
 
 from flask_app.models.event import EventModel
 from flask_app.models.user import UserModel
+from flask_app.models.artifact import ArtifactModel
 from flask_app import urls
 
 
@@ -40,6 +40,11 @@ def handle_marshmallow_validation(err: ValidationError):
     return jsonify(err.messages), 400
 
 
-# @app.errorhandler(InvalidRequestError)
-# def handle_marshmallow_validation(err: InvalidRequestError):
-#     return {"ERROR": str(err)}, 400
+@app.errorhandler(IntegrityError)
+def handle_marshmallow_validation(err: IntegrityError):
+    return {"ERROR": str(err)}, 404
+
+
+@app.errorhandler(InvalidRequestError)
+def handle_marshmallow_validation(err: InvalidRequestError):
+    return {"ERROR": str(err)}, 404

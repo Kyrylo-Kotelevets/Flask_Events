@@ -1,0 +1,44 @@
+version: '3.3'
+
+services:
+  db:
+    image: postgres:13-alpine
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    container_name: db_${APP_NAME}
+    hostname: db_${APP_NAME}
+    ports:
+      - 5430:5432
+    networks:
+      - flask-net
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python manage.py run -h 0.0.0.0
+    volumes:
+      - .:/usr/src/app/
+    env_file:
+      - ./.env
+    container_name: ${APP_NAME}
+    hostname: ${APP_NAME}
+    depends_on:
+      - db
+    ports:
+      - 5000:5000
+    restart: always
+    networks:
+      - flask-net
+
+volumes:
+  postgres_data:
+
+networks:
+  flask-net:
+    driver: bridge

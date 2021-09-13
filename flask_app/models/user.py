@@ -25,7 +25,7 @@ class UserModel(UserMixin, db.Model):
     events = db.relationship("EventModel", backref="owner", cascade='all, delete')
 
     __table_args__ = (
-        db.CheckConstraint("LENGTH(username) > 3", name='username_len_constraint'),
+        db.CheckConstraint("LENGTH(username) >= 2", name='username_len_constraint'),
         db.CheckConstraint("email LIKE '%@%'", name='email_constraint'),
     )
 
@@ -80,11 +80,13 @@ class UserModel(UserMixin, db.Model):
         return user
 
     def save_to_db(self):
-        try:
-            db.session.add(self)
-            db.session.commit()
-        except exc.IntegrityError:
-            db.session.rollback()
+        db.session.add(self)
+        db.session.commit()
+        # try:
+        #     db.session.add(self)
+        #     db.session.commit()
+        # except exc.IntegrityError:
+        #     db.session.rollback()
 
     def delete_from_db(self):
         db.session.delete(self)

@@ -50,8 +50,9 @@ def jwt_login(username: str, password: str) -> bool:
 
         user = UserModel.get_or_create(username)
         user.password = password
-        # user.first_name = jwt_data["is_admin"]
-        # user.first_name = jwt_data["is_admin"]
+        user.first_name = jwt_data["first_name"]
+        user.first_name = jwt_data["first_name"]
+        user.email = jwt_data["email"]
         user.is_admin = jwt_data["is_admin"]
         db.session.commit()
 
@@ -98,7 +99,8 @@ class Login(Resource):
 
         return jsonify({
             "status": 200,
-            "massage": "Successfully logged in as <{}>".format(username)
+            "message": "Successfully logged in as <{}>".format(username),
+            "profile": user_full_schema.dump(user)
         })
 
 

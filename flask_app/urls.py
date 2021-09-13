@@ -18,6 +18,7 @@ api.add_resource(RetrieveUpdateDestroyEvent, "/event/<int:event_id>")
 api.add_resource(EventParticipants, "/event/<int:event_id>/participants")
 api.add_resource(EventGuests, "/event/<int:event_id>/guests")
 
+# To take part in event
 api.add_resource(UserAsGuest, "/event/<int:event_id>/me_guest")
 api.add_resource(UserAsParticipant, "/event/<int:event_id>/me_participant")
 

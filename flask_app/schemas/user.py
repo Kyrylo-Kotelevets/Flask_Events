@@ -20,5 +20,5 @@ class UserSchema(SQLAlchemyAutoSchema):
 user_full_schema = UserSchema()
 user_full_list_schema = UserSchema(many=True)
 
-user_short_schema = UserSchema(only=("username", "first_name", "last_name"))
-user_short_list_schema = UserSchema(only=("username", "first_name", "last_name"), many=True)
+user_short_schema = UserSchema(only=("username", "first_name", "last_name", "is_admin"))
+user_short_list_schema = UserSchema(only=("username", "first_name", "last_name", "is_admin"), many=True)

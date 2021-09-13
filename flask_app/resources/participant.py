@@ -4,6 +4,7 @@ from flask_restx import Resource
 
 from flask_app.models.event import EventModel
 from flask_app.models.user import UserModel
+from flask_app.pagination.pagination import create_pagination
 from flask_app.resources.event import EventResource
 from flask_app.schemas.event import event_short_list_schema
 from flask_app.schemas.user import user_short_list_schema
@@ -13,7 +14,18 @@ class UserEventsAsParticipant(Resource):
     @staticmethod
     @login_required
     def get():
-        return event_short_list_schema.dump(EventModel.filter_by_participant(user_id=current_user.id))
+        filters = dict(request.args)
+        page = int(filters.pop("page", 1))
+        limit = int(filters.pop("limit", 2))
+
+        queryset = EventModel.filter_by_participant(user_id=current_user.id)
+        paginated_events = queryset.paginate(page, limit, error_out=False)
+        response = create_pagination(items=paginated_events,
+                                     schema=event_short_list_schema,
+                                     page=page,
+                                     limit=limit,
+                                     base_url=request.base_url)
+        return response, 200
 
 
 class UserAsParticipant(EventResource):
@@ -48,8 +60,7 @@ class UserAsParticipant(EventResource):
                 "message": "You already registered as a participant"
             })
         else:
-            self.event.participants.append(current_user)
-            self.event.save_to_db()
+            self.event.add_participant(current_user)
 
             return jsonify({
                 "status": 200,
@@ -112,8 +123,7 @@ class EventParticipants(EventResource):
                         "message": "<{}> already registered for event as participant".format(participant.username)
                     })
 
-            self.event.participants.append(participant)
-            self.event.save_to_db()
+            self.event.add_participant(participant)
 
         return jsonify({
             "status": 200,
