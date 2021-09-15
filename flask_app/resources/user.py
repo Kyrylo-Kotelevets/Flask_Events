@@ -1,4 +1,8 @@
+"""
+Module with User Endpoints
+"""
 from functools import wraps
+from typing import Callable, Dict, Tuple
 
 from flask import Response
 from flask import request, jsonify
@@ -7,16 +11,27 @@ from flask_restx import Resource
 
 from flask_app.auth.checkers import admin_required
 from flask_app.models.user import UserModel
-from flask_app.schemas.user import user_full_schema, user_short_list_schema, user_full_list_schema
+from flask_app.pagination.pagination import create_pagination
+from flask_app.schemas.user import user_full_schema, user_short_list_schema
 
 
 class UserResource(Resource):
+    """
+    Base resource class for User model
+    """
     def __init__(self, *args, **kwargs):
+        """
+        Initializes user
+        """
         super().__init__(*args, **kwargs)
         self.user = None
 
     @login_required
     def dispatch_request(self, *args, **kwargs):
+        """
+        Checks if the user exists,
+        and if so, then initializes it
+        """
         username = kwargs.get("username")
         user = UserModel.find_by_username(username)
 
@@ -25,12 +40,16 @@ class UserResource(Resource):
                 "status": 404,
                 "message": "User <{}> not found".format(username)
             })
-        else:
-            self.user = user
-            return super().dispatch_request(*args, **kwargs)
+
+        self.user = user
+        return super().dispatch_request(*args, **kwargs)
 
     @staticmethod
-    def admin_or_owner_required(foo):
+    def admin_or_owner_required(foo: Callable) -> Callable:
+        """
+        Decorator for checking admin or owner access rights
+        """
+        @login_required
         @wraps(foo)
         def wrapper(_, username):
             if not current_user.is_admin and current_user != UserModel.find_by_username(username):
@@ -41,16 +60,41 @@ class UserResource(Resource):
 
 
 class UserList(Resource):
+    """
+    Resource for retrieving exists and adding new users
+    """
     @classmethod
-    def get(cls):
-        if current_user.is_authenticated and current_user.is_admin:
-            return user_full_list_schema.dump(UserModel.find_all()), 200
-        else:
-            return user_short_list_schema.dump(UserModel.find_all()), 200
+    def get(cls) -> Tuple[Dict, int]:
+        """Method for retrieving list of all Users
+
+        Returns
+        -------
+        Tuple[Dict, int]
+            Response message and status code
+        """
+        filters = dict(request.args)
+        page = int(filters.pop("page", 1))
+        limit = int(filters.pop("limit", 2))
+
+        paginated_users = UserModel.query.paginate(page, limit, error_out=False)
+        response = create_pagination(items=paginated_users,
+                                     schema=user_short_list_schema,
+                                     page=page,
+                                     limit=limit,
+                                     query_params=filters,
+                                     base_url=request.base_url)
+        return response, 200
 
     @classmethod
     @admin_required
     def post(cls):
+        """Method for creating new User
+
+        Returns
+        -------
+        Tuple[Dict, int]
+            Response message and status code
+        """
         user_json = request.get_json(force=True)
         username = user_json.get('username')
         password = user_json.get('password')
@@ -74,12 +118,39 @@ class UserList(Resource):
 
 
 class RetrieveUpdateDestroyUser(UserResource):
+    """
+    Resource for managing User details
+    """
     @UserResource.admin_or_owner_required
-    def get(self, username: str):
+    def get(self, username: str) -> Tuple[Dict, int]:
+        """Method for retrieving details about the User
+
+        Parameters
+        ----------
+        username : int
+            User`s username
+
+        Returns
+        -------
+        Tuple[Dict, int]
+            Response message and status code
+        """
         return user_full_schema.dump(self.user), 200
 
     @UserResource.admin_or_owner_required
-    def patch(self, username: str):
+    def patch(self, username: str) -> Tuple[Dict, int]:
+        """Method for partial updating details about the User
+
+        Parameters
+        ----------
+        username : int
+            User`s username
+
+        Returns
+        -------
+        Tuple[Dict, int]
+            Response message and status code
+        """
         user_json = request.get_json(force=True)
 
         if ("is_admin" in user_json.keys()) and (current_user == self.user):
@@ -100,60 +171,20 @@ class RetrieveUpdateDestroyUser(UserResource):
 
     @UserResource.admin_or_owner_required
     def delete(self, username: str):
+        """Method for deleting the User
+
+        Parameters
+        ----------
+        username : int
+            User`s username
+
+        Returns
+        -------
+        Tuple[Dict, int]
+            Response message and status code
+        """
         if current_user == self.user:
             return {"message": "Sorry, but you can`t delete yourself"}, 403
 
         self.user.delete_from_db()
         return {"message": "User <{}> deleted".format(username)}, 200
-
-
-# class UserListId(Resource):
-#     @classmethod
-#     def get(cls, user_id):
-#         user_data = UserModel.query.get(user_id)
-#
-#         if user_data:
-#             return user_schema.dump(user_data), 200
-#
-#         return {"status": 404, 'message': USER_NOT_FOUND}
-#
-#     @classmethod
-#     @login_required
-#     def delete(cls, user_id) -> dict:
-#         if current_user.is_authenticated and current_user.is_admin:
-#             user_data = UserModel.query.get(user_id)
-#
-#             if user_data:
-#                 user_data.delete_from_db()
-#                 return {"status": 200, 'message': "User Deleted successfully"}
-#
-#             return {"status": 404, 'message': USER_NOT_FOUND}
-#
-#         return {"status": 401, "reason": "User is not admin"}
-#
-#     @classmethod
-#     @login_required
-#     def put(cls, user_id):
-#         if current_user.is_authenticated and current_user.is_admin:
-#             user_data = UserModel.query.get(user_id)
-#             user_json = request.get_json()
-#
-#             if not user_data:
-#                 return {"status": 404, 'message': USER_NOT_FOUND}
-#
-#             if user_already_exist(user_json):
-#                 return {"status": 401, "reason": "User already exist"}
-#
-#             try:
-#                 user_data.username = UserModel.validate_username(user_json['username'])
-#                 user_data.password = user_json['password']
-#                 user_data.first_name = UserModel.validate_username(user_json['name'])
-#                 user_data.last_name = UserModel.validate_username(user_json['name'])
-#                 user_data.email = UserModel.validate_email(user_json['email'])
-#             except AssertionError:
-#                 return {"status": 401, "message": "Invalid data"}
-#
-#             user_data.save_to_db()
-#             return user_schema.dump(user_data), 200
-#
-#         return {"status": 401, "reason": "User is not admin"}

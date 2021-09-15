@@ -1,3 +1,9 @@
+"""
+Module with Event Schema
+"""
+
+from typing import Dict
+
 from marshmallow import fields, post_load
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 
@@ -7,6 +13,9 @@ from flask_app.schemas.artifact import artifact_list_schema
 
 
 class EventSchema(SQLAlchemyAutoSchema):
+    """
+    Event Schema
+    """
     title = fields.String(
         required=True,
         error_messages={
@@ -36,6 +45,9 @@ class EventSchema(SQLAlchemyAutoSchema):
     status = fields.String()
 
     class Meta:
+        """
+        Connecting Schema to the Event Model
+        """
         ordered = True
         include_fk = True
         model = EventModel
@@ -46,7 +58,10 @@ class EventSchema(SQLAlchemyAutoSchema):
         dump_only = ("id", "status", "participants", "guests", "owner")
 
     @post_load
-    def make_event(self, data, **kwargs):
+    def make_event(self, data: Dict, **kwargs) -> EventModel:
+        """
+        Method for returning EventModel
+        """
         return EventModel(**data)
 
 

@@ -39,8 +39,3 @@ def seed_users(count: int = 50):
                          first_name=fake.first_name(),
                          last_name=fake.first_name())
         user.save_to_db()
-
-
-def seed_django_user():
-    db.session.add(UserModel(username="wenom"))
-    db.session.commit()

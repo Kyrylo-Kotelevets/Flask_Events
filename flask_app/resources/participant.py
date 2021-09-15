@@ -1,4 +1,10 @@
-from flask import request, jsonify
+"""
+Module with Event participants endpoints
+"""
+
+from typing import Dict, Tuple
+
+from flask import request, Response, jsonify
 from flask_login import login_required, current_user
 from flask_restx import Resource
 
@@ -13,7 +19,15 @@ from flask_app.schemas.user import user_short_list_schema
 class UserEventsAsParticipant(Resource):
     @staticmethod
     @login_required
-    def get():
+    def get() -> Tuple[Dict, int]:
+        """Method for retrieving a list of events
+        where the current user in the participants list
+
+        Returns
+        -------
+        Tuple[Dict, int]
+            Response message and status code
+        """
         filters = dict(request.args)
         page = int(filters.pop("page", 1))
         limit = int(filters.pop("limit", 2))
@@ -29,8 +43,24 @@ class UserEventsAsParticipant(Resource):
 
 
 class UserAsParticipant(EventResource):
+    """
+    Resource for registering and unregistering
+    as a participant fo event
+    """
     @login_required
-    def get(self, event_id: int):
+    def get(self, event_id: int) -> Response:
+        """Method for checking registration as a participant
+
+        Parameters
+        ----------
+        event_id : int
+            Event id
+
+        Returns
+        -------
+        Response
+            Response message with status code
+        """
         if current_user in self.event.participants:
             return jsonify({
                 "status": 200,
@@ -48,7 +78,19 @@ class UserAsParticipant(EventResource):
             })
 
     @login_required
-    def post(self, event_id: int):
+    def post(self, event_id: int) -> Response:
+        """Method for registering as a participant
+
+        Parameters
+        ----------
+        event_id : int
+            Event id
+
+        Returns
+        -------
+        Response
+            Response message with status code
+        """
         if current_user in self.event.guests:
             return jsonify({
                 "status": 404,
@@ -68,7 +110,19 @@ class UserAsParticipant(EventResource):
             })
 
     @login_required
-    def delete(self, event_id: int):
+    def delete(self, event_id: int) -> Response:
+        """Method for unregistering from participants
+
+        Parameters
+        ----------
+        event_id : int
+            Event id
+
+        Returns
+        -------
+        Response
+            Response message with status code
+        """
         if current_user not in self.event.participants:
             return jsonify({
                 "status": 404,
@@ -85,11 +139,41 @@ class UserAsParticipant(EventResource):
 
 
 class EventParticipants(EventResource):
-    def get(self, event_id: int):
-        return user_short_list_schema.dump(self.event.participants), 200
+    """
+    Resource for managing Event participants list
+    """
+    def get(self, event_id: int) -> Response:
+        """Method for retrieving a list of event participants
+
+        Parameters
+        ----------
+        event_id : int
+            Event id
+
+        Returns
+        -------
+        Response
+            Response message with status code
+        """
+        return jsonify({
+            "status": 200,
+            "guests": user_short_list_schema.dump(self.event.participants)
+        })
 
     @EventResource.admin_or_owner_required
-    def post(self, event_id: int):
+    def post(self, event_id: int) -> Response:
+        """Method for adding new participant
+
+        Parameters
+        ----------
+        event_id : int
+            Event id
+
+        Returns
+        -------
+        Response
+            Response message with status code
+        """
         body = request.get_json(force=True)
 
         if not body.get('participants'):
@@ -131,7 +215,19 @@ class EventParticipants(EventResource):
         })
 
     @EventResource.admin_or_owner_required
-    def delete(self, event_id: int):
+    def delete(self, event_id: int) -> Response:
+        """Method for deleting participant
+
+        Parameters
+        ----------
+        event_id : int
+            Event id
+
+        Returns
+        -------
+        Response
+            Response message with status code
+        """
         body = request.get_json(force=True)
 
         if not body.get('participants'):

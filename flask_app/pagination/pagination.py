@@ -1,10 +1,38 @@
+"""
+Module with pagination function
+"""
+from typing import Dict, Optional
+
 from flask_sqlalchemy import Pagination
 from marshmallow import Schema
 
 
 def create_pagination(*, items: Pagination, schema: Schema,
                       page: int = 1, limit: int = 20,
-                      query_params=None, base_url: str):
+                      query_params: Optional[Dict] = None, base_url: str) -> Dict:
+    """Function for creating response with paginated items
+    by adding links next and previous pages etc.
+
+    Parameters
+    ----------
+    items : Pagination
+        Paginated set of data
+    schema : Schema
+        Marshmallow Schema for serialization
+    page : int
+        Current page number
+    limit : int
+        Maximal amount of items on page
+    query_params: Dict
+        Request parameters, such as filters, etc.
+    base_url: str
+        Current page url
+
+    Returns
+    -------
+    Dict
+        Response
+    """
     if items.total == 0:
         return {"message": "Nothing to show", "status": 200}
 
