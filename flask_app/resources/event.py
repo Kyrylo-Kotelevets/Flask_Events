@@ -108,7 +108,7 @@ class EventList(Resource):
         """
         filters = dict(request.args)
         page = int(filters.pop("page", 1))
-        limit = int(filters.pop("limit", 2))
+        limit = int(filters.pop("limit", 5))
 
         queryset = EventModel.get_list(query_params=filters)
         paginated_events = queryset.paginate(page, limit, error_out=False)

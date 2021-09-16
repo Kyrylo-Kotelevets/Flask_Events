@@ -70,7 +70,7 @@ class Login(Resource):
                 "massage": "Already logged in as <{}>".format(current_user.username)
             })
 
-        user_data = request.get_json()
+        user_data = request.get_json(force=True)
         username = user_data.get('username')
         password = user_data.get('password')
 

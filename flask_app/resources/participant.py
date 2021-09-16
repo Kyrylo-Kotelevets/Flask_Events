@@ -22,6 +22,7 @@ class UserEventsAsParticipant(Resource):
     def get() -> Tuple[Dict, int]:
         """Method for retrieving a list of events
         where the current user in the participants list
+        where the current user in the participants list
 
         Returns
         -------
@@ -157,7 +158,7 @@ class EventParticipants(EventResource):
         """
         return jsonify({
             "status": 200,
-            "guests": user_short_list_schema.dump(self.event.participants)
+            "participants": user_short_list_schema.dump(self.event.participants)
         })
 
     @EventResource.admin_or_owner_required

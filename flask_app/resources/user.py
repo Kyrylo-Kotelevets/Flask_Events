@@ -74,7 +74,7 @@ class UserList(Resource):
         """
         filters = dict(request.args)
         page = int(filters.pop("page", 1))
-        limit = int(filters.pop("limit", 2))
+        limit = int(filters.pop("limit", 5))
 
         queryset = UserModel.get_list(filters)
         paginated_users = queryset.paginate(page, limit, error_out=False)

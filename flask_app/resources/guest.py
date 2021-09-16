@@ -198,7 +198,7 @@ class EventGuests(EventResource):
                         "message": "<{}> already registered for event as guest".format(guest.username)
                     })
 
-            self.event.add_guests(guest)
+            self.event.add_guest(guest)
 
         return jsonify({
             "status": 200,

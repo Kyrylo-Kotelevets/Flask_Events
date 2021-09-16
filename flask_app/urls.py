@@ -5,14 +5,16 @@ from flask_app.resources.participant import UserEventsAsParticipant, UserAsParti
 from flask_app.resources.user import UserList, RetrieveUpdateDestroyUser
 from . import api
 
-# user login - post
+# User authentication (POST only)
 api.add_resource(Login, "/login")
 api.add_resource(SignUp, "/signup")
 api.add_resource(Logout, "/logout")
 
+# For user managing
 api.add_resource(UserList, "/user")
 api.add_resource(RetrieveUpdateDestroyUser, "/user/<string:username>")
 
+# For event managing
 api.add_resource(EventList, "/event")
 api.add_resource(RetrieveUpdateDestroyEvent, "/event/<int:event_id>")
 api.add_resource(EventParticipants, "/event/<int:event_id>/participants")
@@ -22,6 +24,7 @@ api.add_resource(EventGuests, "/event/<int:event_id>/guests")
 api.add_resource(UserAsGuest, "/event/<int:event_id>/me_guest")
 api.add_resource(UserAsParticipant, "/event/<int:event_id>/me_participant")
 
+# To see own events, etc. (GET only)
 api.add_resource(UserEventsAsParticipant, "/where_i_participant")
 api.add_resource(UserEventsAsGuest, "/where_i_guest")
 api.add_resource(UserEventsAsOwner, "/my_events")
