@@ -1,7 +1,6 @@
 from flask.cli import FlaskGroup
-
 from flask_app import app, db
-from flask_app.seed_db import seed_django_user, seed_users, seed_event
+from flask_app.seed_db import seed_event, seed_users
 
 cli = FlaskGroup(app)
 
@@ -16,7 +15,6 @@ def create_db():
 
 @cli.command("seed_db")
 def seed_db():
-    seed_django_user()
     seed_users(5)
     seed_event(50)
 

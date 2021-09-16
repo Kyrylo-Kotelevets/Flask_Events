@@ -67,7 +67,7 @@ class EventModel(db.Model, EntityModel):
     __tablename__ = 'event'
 
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(128), nullable=False, unique=True)
+    title = db.Column(db.String(128), unique=True)
     summary = db.Column(db.String(1028), nullable=True)
 
     dt_start = db.Column(db.DateTime, default=datetime.utcnow)

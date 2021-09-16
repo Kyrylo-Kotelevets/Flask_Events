@@ -13,9 +13,9 @@ services:
     container_name: db_${APP_NAME}
     hostname: db_${APP_NAME}
     ports:
-      - 5430:5432
+      - "5430:5432"
     networks:
-      - flask-net
+      - test-net
 
   web:
     build:
@@ -31,14 +31,14 @@ services:
     depends_on:
       - db
     ports:
-      - 5000:5000
+      - "5000:5000"
     restart: always
     networks:
-      - flask-net
+      - test-net
 
 volumes:
   postgres_data:
 
 networks:
-  flask-net:
+  test-net:
     driver: bridge

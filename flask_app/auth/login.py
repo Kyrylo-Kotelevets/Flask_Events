@@ -3,7 +3,7 @@ import os
 
 import jwt
 import requests
-from flask import request, jsonify, Response
+from flask import jsonify, request, Response
 from flask_login import (
     LoginManager,
     login_user,
@@ -41,7 +41,7 @@ def encode_token(username: str, password: str):
 
 def jwt_login(username: str, password: str) -> bool:
     jwt_token = encode_token(username, password)
-    response = requests.post('{}/api/jwt-auth/'.format(os.getenv('BOOKS_APP_URL')),
+    response = requests.post(url='{}/api/jwt-auth/'.format(os.getenv('BOOKS_APP_URL')),
                              headers={'Content-Type': 'application/json'},
                              data=json.dumps({"token": jwt_token}))
 
@@ -108,8 +108,8 @@ class SignUp(Resource):
     @classmethod
     def post(cls):
         user_json = request.get_json(force=True)
-        username = user_json.get('username')
-        password = user_json.get('password')
+        username = user_json.get("username")
+        password = user_json.get("password")
 
         if username is None or password is None:
             return jsonify({

@@ -1,4 +1,4 @@
-# from sqlalchemy import exc
+from sqlalchemy import exc
 from flask_app import db
 
 
@@ -29,13 +29,14 @@ class RelationshipModel:
         """
         Delete object from database
         """
-        db.session.delete(self)
-        db.session.commit()
-        # try:
-        #     db.session.delete(self)
-        #     db.session.commit()
-        # except exc.IntegrityError:
-        #     db.session.rollback()
+        # db.session.delete(self)
+        # db.session.commit()
+        try:
+            db.session.delete(self)
+            db.session.commit()
+        except exc.IntegrityError as err:
+            db.session.rollback()
+            raise err
 
 
 class EntityModel(RelationshipModel):

@@ -13,17 +13,17 @@ from flask_app.models.base import EntityModel
 
 
 class UserModel(UserMixin, db.Model, EntityModel):
-    __tablename__ = 'user'
+    __tablename__ = "user"
 
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(128), unique=True, nullable=False)
+    username = db.Column(db.String(128), unique=True)
     _password = db.Column(db.String(128), nullable=True)
 
     first_name = db.Column(db.String(128))
     last_name = db.Column(db.String(128))
     email = db.Column(db.String(128), unique=True)
 
-    is_admin = db.Column(db.Boolean, nullable=False, default=False)
+    is_admin = db.Column(db.Boolean, default=False)
 
     events = db.relationship("EventModel", backref="owner", cascade='all, delete')
 
