@@ -1,8 +1,9 @@
 import os
-from typing import Optional
+from typing import Optional, Dict
 
 import requests
 from flask_login import UserMixin
+from flask_sqlalchemy import BaseQuery
 # from sqlalchemy import exc
 from sqlalchemy.ext.hybrid import hybrid_property
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -153,6 +154,54 @@ class UserModel(UserMixin, db.Model, EntityModel):
             user = UserModel(username=username)
             user.save_to_db()
         return user
+
+    @classmethod
+    def filter_by_username(cls, subname: str, queryset: Optional[BaseQuery] = None) \
+            -> Optional['UserModel']:
+        """Method for searching by event title
+
+        Parameters
+        ----------
+        subname : str
+            User subname pattern for search
+        queryset : Optional[BaseQuery]
+            Users for search in, None by default for searching in all
+
+        Returns
+        -------
+        Optional['UserModel']
+            Search result, None if not exists
+        """
+        look_for = '%{0}%'.format(subname)
+        queryset = queryset or cls.query
+        return queryset.filter(UserModel.username.like(look_for))
+
+    @classmethod
+    def get_list(cls, query_params: Optional[Dict] = None) \
+            -> Optional['UserModel']:
+        """Method for getting users by specified filters
+
+        Parameters
+        ----------
+        query_params : Optional[Dict]
+            Filters for applying
+
+        Returns
+        -------
+        Optional['UserModel']
+            Search result, None if no users with all filter values exists
+        """
+        if query_params is None:
+            query_params = dict()
+
+        order_by = getattr(cls, query_params.pop("order_by", "username"))
+        order = query_params.pop("order", "asc")
+        order_by = order_by.desc() if order == "desc" else order_by.asc()
+
+        query = cls.query
+        query = UserModel.filter_by_username(query_params.get("username", ""), query)
+
+        return query.order_by(order_by)
 
     def update_in_db(self, data):
         """

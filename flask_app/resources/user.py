@@ -76,7 +76,8 @@ class UserList(Resource):
         page = int(filters.pop("page", 1))
         limit = int(filters.pop("limit", 2))
 
-        paginated_users = UserModel.query.paginate(page, limit, error_out=False)
+        queryset = UserModel.get_list(filters)
+        paginated_users = queryset.paginate(page, limit, error_out=False)
         response = create_pagination(items=paginated_users,
                                      schema=user_short_list_schema,
                                      page=page,

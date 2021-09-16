@@ -190,7 +190,28 @@ class EventModel(db.Model, EntityModel):
         return queryset.filter_by(title=title).first()
 
     @classmethod
-    def find_by_status(cls, status: str, queryset: Optional[BaseQuery] = None) \
+    def filter_by_subtitle(cls, subtitle: str, queryset: Optional[BaseQuery] = None) \
+            -> Optional['EventModel']:
+        """Method for searching by event title
+
+        Parameters
+        ----------
+        subtitle : str
+            Event subtitle pattern for search
+        queryset : Optional[BaseQuery]
+            Events for search in, None by default for searching in all
+
+        Returns
+        -------
+        Optional['EventModel']
+            Search result, None if not exists
+        """
+        look_for = '%{0}%'.format(subtitle)
+        queryset = queryset or cls.query
+        return queryset.filter(EventModel.title.like(look_for))
+
+    @classmethod
+    def filter_by_status(cls, status: str, queryset: Optional[BaseQuery] = None) \
             -> Optional['EventModel']:
         """Method for searching by event status
 
@@ -293,10 +314,8 @@ class EventModel(db.Model, EntityModel):
         order_by = order_by.desc() if order == "desc" else order_by.asc()
 
         query = cls.query
-        query = EventModel.find_by_status(query_params.get("status", "future"), query)
-
-        if query_params.get("title"):
-            query = EventModel.find_by_title(query_params.get("title"), query)
+        query = EventModel.filter_by_status(query_params.get("status", "future"), query)
+        query = EventModel.filter_by_subtitle(query_params.get("title", ""), query)
 
         return query.order_by(order_by)
 
