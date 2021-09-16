@@ -7,12 +7,11 @@ from typing import Dict, Tuple
 from flask import request, Response, jsonify
 from flask_login import login_required, current_user
 from flask_restx import Resource
+from werkzeug.datastructures import ImmutableMultiDict
 
-from flask_app.models.event import EventModel
 from flask_app.models.user import UserModel
-from flask_app.pagination.pagination import create_pagination
+from flask_app.resources.event import EventList
 from flask_app.resources.event import EventResource
-from flask_app.schemas.event import event_short_list_schema
 from flask_app.schemas.user import user_short_list_schema
 
 
@@ -20,9 +19,9 @@ class UserEventsAsParticipant(Resource):
     @staticmethod
     @login_required
     def get() -> Tuple[Dict, int]:
-        """Method for retrieving a list of events
-        where the current user in the participants list
-        where the current user in the participants list
+        """Method for retrieving a list of events where
+        the current user in the participants list.
+        Adds filter parameter and redirects to the Events list.
 
         Returns
         -------
@@ -30,17 +29,10 @@ class UserEventsAsParticipant(Resource):
             Response message and status code
         """
         filters = dict(request.args)
-        page = int(filters.pop("page", 1))
-        limit = int(filters.pop("limit", 2))
+        filters["participant_id"] = current_user.id
+        request.args = ImmutableMultiDict(filters)
 
-        queryset = EventModel.filter_by_participant(user_id=current_user.id)
-        paginated_events = queryset.paginate(page, limit, error_out=False)
-        response = create_pagination(items=paginated_events,
-                                     schema=event_short_list_schema,
-                                     page=page,
-                                     limit=limit,
-                                     base_url=request.base_url)
-        return response, 200
+        return EventList.get()
 
 
 class UserAsParticipant(EventResource):

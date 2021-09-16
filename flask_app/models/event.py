@@ -317,6 +317,13 @@ class EventModel(db.Model, EntityModel):
         query = EventModel.filter_by_status(query_params.get("status", "future"), query)
         query = EventModel.filter_by_subtitle(query_params.get("title", ""), query)
 
+        if query_params.get("owner_id"):
+            query = EventModel.filter_by_owner(query_params.get("owner_id"), query)
+        if query_params.get("guest_id"):
+            query = EventModel.filter_by_guest(query_params.get("guest_id"), query)
+        if query_params.get("participant_id"):
+            query = EventModel.filter_by_participant(query_params.get("participant_id"), query)
+
         return query.order_by(order_by)
 
     def update_in_db(self, data):

@@ -7,11 +7,11 @@ from typing import Dict, Tuple
 from flask import request, Response, jsonify
 from flask_login import login_required, current_user
 from flask_restx import Resource
+from werkzeug.datastructures import ImmutableMultiDict
 
-from flask_app.models.event import EventModel
 from flask_app.models.user import UserModel
+from flask_app.resources.event import EventList
 from flask_app.resources.event import EventResource
-from flask_app.schemas.event import event_short_list_schema
 from flask_app.schemas.user import user_short_list_schema
 
 
@@ -23,15 +23,20 @@ class UserEventsAsGuest(Resource):
     @staticmethod
     @login_required
     def get() -> Tuple[Dict, int]:
-        """Method for retrieving a list of events
-        where the current user in the guest list
+        """Method for retrieving a list of events where
+        the current user in the guest list.
+        Adds filter parameter and redirects to the Events list
 
         Returns
         -------
         Tuple[Dict, int]
             Response message and status code
         """
-        return event_short_list_schema.dump(EventModel.filter_by_guest(user_id=current_user.id))
+        filters = dict(request.args)
+        filters["guest_id"] = current_user.id
+        request.args = ImmutableMultiDict(filters)
+
+        return EventList.get()
 
 
 class UserAsGuest(EventResource):

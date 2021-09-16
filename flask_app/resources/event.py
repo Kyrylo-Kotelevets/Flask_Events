@@ -3,7 +3,7 @@ Module with Event Endpoints
 """
 from functools import wraps
 from typing import Callable, Dict, Tuple
-
+from werkzeug.datastructures import ImmutableMultiDict
 from flask import Response
 from flask import request, jsonify
 from flask_login import login_required, current_user
@@ -82,15 +82,20 @@ class UserEventsAsOwner(Resource):
     @staticmethod
     @login_required
     def get() -> Tuple[Dict, int]:
-        """Method for retrieving a list of events
-        where the current user is the owner
+        """Method for retrieving a list of events where the
+        current user is the owner.
+        Adds filter parameter and redirects to the Events list.
 
         Returns
         -------
         Tuple[Dict, int]
             Response message and status code
         """
-        return event_short_list_schema.dump(EventModel.filter_by_owner(user_id=current_user.id))
+        filters = dict(request.args)
+        filters["owner_id"] = current_user.id
+        request.args = ImmutableMultiDict(filters)
+
+        return EventList.get()
 
 
 class EventList(Resource):
